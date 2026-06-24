@@ -207,10 +207,18 @@ export default {
       // explicit per-item override (compute `canDelete`/`deletable` in your mapped data for custom rules)
       if (f && typeof f.canDelete === "boolean") return f.canDelete;
       if (f && typeof f.deletable === "boolean") return f.deletable;
+      // activity allow-list (e.g. only "Message"); empty = no gating
+      const allow = Array.isArray(this.content.deletableActivities) ? this.content.deletableActivities : [];
+      if (allow.length) {
+        const act = String((f && f.activity) || "").trim().toLowerCase();
+        const ok = allow.some((a) => String(a).trim().toLowerCase() === act);
+        if (!ok) return false;
+      }
+      // own-items-only
       if (this.content.deleteOwnOnly) {
         const owner = this.ownerId(f);
         const me = this.content.currentUserId;
-        return !!owner && me != null && me !== "" && String(owner) === String(me);
+        if (!(owner && me != null && me !== "" && String(owner) === String(me))) return false;
       }
       return true;
     },
