@@ -12,6 +12,8 @@ export default {
     paginate: { label: { en: "Paginate (built-in)" }, type: "OnOff", defaultValue: true, bindable: true },
     pageSize: { label: { en: "Items per page" }, type: "Number", options: { min: 1, max: 100, step: 1 }, defaultValue: 5, bindable: true },
     showDelete: { label: { en: "Show delete icon" }, type: "OnOff", defaultValue: true, bindable: true },
+    deleteOwnOnly: { label: { en: "Delete own items only" }, type: "OnOff", defaultValue: false, bindable: true },
+    currentUserId: { label: { en: "Current user ID (for own-only)" }, type: "Text", defaultValue: "", bindable: true },
     showAttachments: { label: { en: "Show attachments" }, type: "OnOff", defaultValue: true, bindable: true },
     renderHtml: { label: { en: "Render body as rich text (HTML)" }, type: "OnOff", defaultValue: true, bindable: true },
     showFilters: { label: { en: "Show filters" }, type: "OnOff", defaultValue: true, bindable: true },

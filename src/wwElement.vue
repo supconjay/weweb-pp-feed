@@ -25,7 +25,7 @@
                 <span v-if="activityLabel(f)" class="pp-feeditem__activity">{{ activityLabel(f) }}</span>
                 <span class="pp-muted">{{ timeText(f) }}</span>
               </span>
-              <button v-if="content.showDelete !== false" class="pp-feeditem__del" type="button" aria-label="Delete" @click.stop="emitDelete(pageOffset + i, f)">
+              <button v-if="canDelete(f)" class="pp-feeditem__del" type="button" aria-label="Delete" @click.stop="emitDelete(pageOffset + i, f)">
                 <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('trash')"></path></svg>
               </button>
             </div>
@@ -199,6 +199,22 @@ export default {
       if (next === this.page) return;
       this.page = next;
       this.$emit("trigger-event", { name: "pageChange", event: { page: next } });
+    },
+    ownerId(f) {
+      if (!f) return "";
+      return (f.user_id && (f.user_id.user_auth_id || f.user_id.id)) || f.user_auth_id || f.userId || f.owner_id || "";
+    },
+    canDelete(f) {
+      if (this.content.showDelete === false) return false;
+      // explicit per-item override (compute `canDelete`/`deletable` in your mapped data for custom rules)
+      if (f && typeof f.canDelete === "boolean") return f.canDelete;
+      if (f && typeof f.deletable === "boolean") return f.deletable;
+      if (this.content.deleteOwnOnly) {
+        const owner = this.ownerId(f);
+        const me = this.content.currentUserId;
+        return !!owner && me != null && me !== "" && String(owner) === String(me);
+      }
+      return true;
     },
     emitItem(i) { this.$emit("trigger-event", { name: "itemClick", event: { index: i } }); },
     emitDelete(i, f) { this.$emit("trigger-event", { name: "delete", event: { index: i, id: (f && f.id) != null ? f.id : "" } }); },
