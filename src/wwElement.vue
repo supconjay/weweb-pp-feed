@@ -200,17 +200,26 @@ export default {
     },
     ownerId(f) {
       if (!f) return "";
-      return (f.user_id && (f.user_id.user_auth_id || f.user_id.id)) || f.user_auth_id || f.userId || f.owner_id || "";
+      const u = f.user_id || (f.data && f.data.user_id);
+      return (u && (u.user_auth_id || u.id)) || f.user_auth_id || f.userId || f.owner_id || "";
+    },
+    activityOf(f) {
+      if (!f) return "";
+      if (f.activity != null) return String(f.activity);
+      if (f.data && f.data.activity != null) return String(f.data.activity);
+      return "";
     },
     canDelete(f) {
       if (this.content.showDelete === false) return false;
       // explicit per-item override (compute `canDelete`/`deletable` in your mapped data for custom rules)
       if (f && typeof f.canDelete === "boolean") return f.canDelete;
       if (f && typeof f.deletable === "boolean") return f.deletable;
-      // activity allow-list (e.g. only "Message"); empty = no gating
-      const allow = Array.isArray(this.content.deletableActivities) ? this.content.deletableActivities : [];
+      // activity allow-list — defaults to ["Message"] in code so it gates even if the
+      // ww-config default isn't applied to an existing instance. Set [] to disable gating.
+      const raw = this.content.deletableActivities;
+      const allow = Array.isArray(raw) ? raw : ["Message"];
       if (allow.length) {
-        const act = String((f && f.activity) || "").trim().toLowerCase();
+        const act = this.activityOf(f).trim().toLowerCase();
         const ok = allow.some((a) => String(a).trim().toLowerCase() === act);
         if (!ok) return false;
       }
