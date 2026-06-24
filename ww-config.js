@@ -8,6 +8,7 @@ export default {
   properties: {
     title: { label: { en: "Title" }, type: "Text", defaultValue: "Feed", bindable: true },
     showAttachments: { label: { en: "Show attachments" }, type: "OnOff", defaultValue: true, bindable: true },
+    renderHtml: { label: { en: "Render body as rich text (HTML)" }, type: "OnOff", defaultValue: true, bindable: true },
     showFilters: { label: { en: "Show filters" }, type: "OnOff", defaultValue: true, bindable: true },
     filters: {
       label: { en: "Filters" }, type: "Array", bindable: true,

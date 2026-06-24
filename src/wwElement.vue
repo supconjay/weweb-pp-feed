@@ -21,10 +21,13 @@
           <div class="pp-feeditem__body">
             <span class="pp-feeditem__head" @click="emitItem(i)">
               <strong>{{ authorName(f) || 'Unknown' }}</strong>
+              <span v-if="activityLabel(f)" class="pp-feeditem__activity">{{ activityLabel(f) }}</span>
               <span class="pp-muted">{{ timeText(f) }}</span>
             </span>
-            <span v-if="actionText(f)" class="pp-feeditem__action">{{ actionText(f) }}</span>
-            <p v-if="bodyText(f)">{{ bodyText(f) }}</p>
+            <template v-if="bodyText(f)">
+              <div v-if="content.renderHtml !== false" class="pp-feeditem__text" v-html="bodyText(f)"></div>
+              <p v-else class="pp-feeditem__text">{{ stripHtml(bodyText(f)) }}</p>
+            </template>
 
             <div v-if="content.showAttachments !== false && attachmentsOf(f).length" class="pp-atts">
               <a
@@ -76,7 +79,16 @@ export default {
     "content.activeFilter"(v) { if (v != null) this.selectedFilter = v; },
   },
   computed: {
-    items() { return Array.isArray(this.content.items) ? this.content.items : []; },
+    items() {
+      const raw = this.content.items;
+      if (Array.isArray(raw)) return raw;
+      // Accept a full WeWeb collection object: { data: [...], total, ... }
+      if (raw && typeof raw === "object") {
+        if (Array.isArray(raw.data)) return raw.data;
+        if (Array.isArray(raw.items)) return raw.items;
+      }
+      return [];
+    },
     filters() { return Array.isArray(this.content.filters) ? this.content.filters : []; },
     svgAttrs() {
       return { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" };
@@ -113,11 +125,12 @@ export default {
       if (isNaN(d)) return String(raw);
       return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
     },
-    actionText(f) { return (f && f.action) || ""; },
+    activityLabel(f) { return (f && (f.activity || f.action)) || ""; },
     bodyText(f) {
       if (!f) return "";
-      return f.text || f.description || f.activity || "";
+      return f.text || f.description || "";
     },
+    stripHtml(s) { return String(s == null ? "" : s).replace(/<[^>]*>/g, "").trim(); },
     attachmentsOf(f) { return f && Array.isArray(f.attachments) ? f.attachments : []; },
     isImage(att) {
       if (!att) return false;
@@ -195,8 +208,13 @@ export default {
 .pp-feeditem__head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; cursor: pointer; flex-wrap: wrap; }
 .pp-feeditem__head strong { color: var(--text); font-size: 13.5px; }
 .pp-feeditem__head .pp-muted { font-size: 12px; }
-.pp-feeditem__action { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin-bottom: 3px; }
-.pp-feeditem__body p { margin: 0; color: var(--text-muted); font-size: 13.5px; overflow-wrap: anywhere; }
+.pp-feeditem__activity { color: var(--text); font-weight: 600; font-size: 13.5px; }
+.pp-feeditem__text { margin: 0; color: var(--text-muted); font-size: 13.5px; overflow-wrap: anywhere; }
+.pp-feeditem__text :deep(p) { margin: 0; }
+.pp-feeditem__text :deep(p + p) { margin-top: 6px; }
+.pp-feeditem__text :deep(a) { color: var(--info); }
+.pp-feeditem__text :deep(ul), .pp-feeditem__text :deep(ol) { margin: 4px 0; padding-left: 18px; }
+.pp-feeditem__text :deep(img) { max-width: 100%; border-radius: 8px; }
 
 .pp-atts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .pp-att { text-decoration: none; cursor: pointer; }
