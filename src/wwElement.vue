@@ -219,7 +219,17 @@ export default {
     emitItem(i) { this.$emit("trigger-event", { name: "itemClick", event: { index: i } }); },
     emitDelete(i, f) { this.$emit("trigger-event", { name: "delete", event: { index: i, id: (f && f.id) != null ? f.id : "" } }); },
     emitAtt(i, j, att) {
-      this.$emit("trigger-event", { name: "attachmentClick", event: { feedIndex: i, attachmentIndex: j, url: (att && att.url) || "" } });
+      this.$emit("trigger-event", {
+        name: "attachmentClick",
+        event: {
+          feedIndex: i,
+          attachmentIndex: j,
+          url: (att && att.url) || "",
+          type: (att && (att.content_type || att.contentType || att.type)) || "",
+          isImage: this.isImage(att),
+          attachment: att || null,
+        },
+      });
     },
   },
 };

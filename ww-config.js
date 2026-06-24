@@ -2,7 +2,7 @@ export default {
   editor: { label: { en: "Feed" } },
   triggerEvents: [
     { name: "itemClick", label: { en: "On item click" }, event: { index: 0 } },
-    { name: "attachmentClick", label: { en: "On attachment click" }, event: { feedIndex: 0, attachmentIndex: 0, url: "" } },
+    { name: "attachmentClick", label: { en: "On attachment click" }, event: { feedIndex: 0, attachmentIndex: 0, url: "", type: "", isImage: false, attachment: {} } },
     { name: "filterChange", label: { en: "On filter click" }, event: { value: "all" } },
     { name: "delete", label: { en: "On delete click" }, event: { index: 0, id: "" } },
     { name: "pageChange", label: { en: "On page change" }, event: { page: 1 } },
