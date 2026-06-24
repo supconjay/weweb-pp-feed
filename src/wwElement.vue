@@ -35,14 +35,12 @@
             </template>
 
             <div v-if="content.showAttachments !== false && attachmentsOf(f).length" class="pp-atts">
-              <a
+              <button
                 v-for="(att, j) in attachmentsOf(f)"
                 :key="j"
+                type="button"
                 class="pp-att"
                 :class="isImage(att) ? 'pp-att--img' : 'pp-att--file'"
-                :href="att.url || undefined"
-                target="_blank"
-                rel="noopener noreferrer"
                 :title="attName(att)"
                 @click="emitAtt(pageOffset + i, j, att)"
               >
@@ -54,7 +52,7 @@
                   <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('file')"></path></svg>
                   <span class="pp-att__name">{{ attName(att) }}</span>
                 </template>
-              </a>
+              </button>
             </div>
           </div>
         </li>
@@ -290,7 +288,7 @@ export default {
 .pp-feeditem__text :deep(img) { max-width: 100%; border-radius: 8px; }
 
 .pp-atts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.pp-att { text-decoration: none; cursor: pointer; }
+.pp-att { text-decoration: none; cursor: pointer; font-family: inherit; padding: 0; }
 .pp-att--img { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 9px; overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-subtle); transition: border-color .15s, transform .12s; }
 .pp-att--img:hover { border-color: var(--border-strong); transform: translateY(-1px); }
 .pp-att--img img { width: 100%; height: 100%; object-fit: cover; }
