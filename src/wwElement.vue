@@ -13,17 +13,22 @@
         >{{ flt.label }}</button>
       </div>
       <ul v-if="items.length" class="pp-feed">
-        <li v-for="(f, i) in items" :key="i" class="pp-feeditem" :class="{ 'pp-feeditem--last': i === items.length - 1 }">
-          <span class="pp-feeditem__avatar" @click="emitItem(i)">
+        <li v-for="(f, i) in pagedItems" :key="pageOffset + i" class="pp-feeditem" :class="{ 'pp-feeditem--last': i === pagedItems.length - 1 }">
+          <span class="pp-feeditem__avatar" @click="emitItem(pageOffset + i)">
             <img v-if="avatarUrl(f)" :src="avatarUrl(f)" :alt="authorName(f)" />
             <template v-else>{{ initials(authorName(f)) }}</template>
           </span>
           <div class="pp-feeditem__body">
-            <span class="pp-feeditem__head" @click="emitItem(i)">
-              <strong>{{ authorName(f) || 'Unknown' }}</strong>
-              <span v-if="activityLabel(f)" class="pp-feeditem__activity">{{ activityLabel(f) }}</span>
-              <span class="pp-muted">{{ timeText(f) }}</span>
-            </span>
+            <div class="pp-feeditem__top">
+              <span class="pp-feeditem__head" @click="emitItem(pageOffset + i)">
+                <strong>{{ authorName(f) || 'Unknown' }}</strong>
+                <span v-if="activityLabel(f)" class="pp-feeditem__activity">{{ activityLabel(f) }}</span>
+                <span class="pp-muted">{{ timeText(f) }}</span>
+              </span>
+              <button v-if="content.showDelete !== false" class="pp-feeditem__del" type="button" aria-label="Delete" @click.stop="emitDelete(pageOffset + i, f)">
+                <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('trash')"></path></svg>
+              </button>
+            </div>
             <template v-if="bodyText(f)">
               <div v-if="content.renderHtml !== false" class="pp-feeditem__text" v-html="bodyText(f)"></div>
               <p v-else class="pp-feeditem__text">{{ stripHtml(bodyText(f)) }}</p>
@@ -39,7 +44,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 :title="attName(att)"
-                @click="emitAtt(i, j, att)"
+                @click="emitAtt(pageOffset + i, j, att)"
               >
                 <template v-if="isImage(att)">
                   <img v-if="attThumb(att)" :src="attThumb(att)" :alt="attName(att)" />
@@ -54,7 +59,18 @@
           </div>
         </li>
       </ul>
-      <div v-else class="pp-empty">
+
+      <div v-if="paginationActive" class="pp-pager">
+        <button class="pp-pager__btn" type="button" :disabled="page <= 1" aria-label="Previous page" @click="goPage(page - 1)">
+          <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('chevron-left')"></path></svg>
+        </button>
+        <span class="pp-pager__info">Page {{ page }} of {{ totalPages }}</span>
+        <button class="pp-pager__btn" type="button" :disabled="page >= totalPages" aria-label="Next page" @click="goPage(page + 1)">
+          <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('chevron-right')"></path></svg>
+        </button>
+      </div>
+
+      <div v-if="!items.length" class="pp-empty">
         <svg class="pp-svg" v-bind="svgAttrs"><path :d="ic('rss')"></path></svg>
         <span>No activity yet</span>
       </div>
@@ -67,18 +83,37 @@ const ICONS = {
   rss: "M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
   file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6",
   image: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zM8.5 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21",
+  trash: "M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+  "chevron-left": "M15 18l-6-6 6-6",
+  "chevron-right": "M9 18l6-6-6-6",
 };
 
 export default {
   props: { content: { type: Object, required: true }, uid: { type: String, required: false } },
   emits: ["trigger-event"],
   data() {
-    return { selectedFilter: this.content.activeFilter != null ? this.content.activeFilter : "all" };
+    return {
+      selectedFilter: this.content.activeFilter != null ? this.content.activeFilter : "all",
+      page: 1,
+    };
   },
   watch: {
     "content.activeFilter"(v) { if (v != null) this.selectedFilter = v; },
+    itemsLength(n) {
+      const tp = Math.max(1, Math.ceil(n / this.pageSize));
+      if (this.page > tp) this.page = tp;
+    },
   },
   computed: {
+    pageSize() { const n = Number(this.content.pageSize); return n > 0 ? Math.floor(n) : 5; },
+    itemsLength() { return this.items.length; },
+    totalPages() { return Math.max(1, Math.ceil(this.items.length / this.pageSize)); },
+    paginationActive() { return this.content.paginate !== false && this.totalPages > 1; },
+    pageOffset() { return this.content.paginate !== false ? (this.page - 1) * this.pageSize : 0; },
+    pagedItems() {
+      if (this.content.paginate === false) return this.items;
+      return this.items.slice(this.pageOffset, this.pageOffset + this.pageSize);
+    },
     items() {
       const raw = this.content.items;
       if (Array.isArray(raw)) return raw;
@@ -156,9 +191,17 @@ export default {
     initials(name) { return (name || "").split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase(); },
     selectFilter(value) {
       this.selectedFilter = value;
+      this.page = 1;
       this.$emit("trigger-event", { name: "filterChange", event: { value } });
     },
+    goPage(p) {
+      const next = Math.max(1, Math.min(this.totalPages, p));
+      if (next === this.page) return;
+      this.page = next;
+      this.$emit("trigger-event", { name: "pageChange", event: { page: next } });
+    },
     emitItem(i) { this.$emit("trigger-event", { name: "itemClick", event: { index: i } }); },
+    emitDelete(i, f) { this.$emit("trigger-event", { name: "delete", event: { index: i, id: (f && f.id) != null ? f.id : "" } }); },
     emitAtt(i, j, att) {
       this.$emit("trigger-event", { name: "attachmentClick", event: { feedIndex: i, attachmentIndex: j, url: (att && att.url) || "" } });
     },
@@ -205,7 +248,11 @@ export default {
 .pp-feeditem__avatar { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 700; font-size: 13px; z-index: 1; cursor: pointer; }
 .pp-feeditem__avatar img { width: 100%; height: 100%; object-fit: cover; }
 .pp-feeditem__body { flex: 1; min-width: 0; }
-.pp-feeditem__head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; cursor: pointer; flex-wrap: wrap; }
+.pp-feeditem__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.pp-feeditem__del { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: none; background: transparent; border-radius: 8px; color: var(--text-subtle); cursor: pointer; transition: background .15s, color .15s; }
+.pp-feeditem__del:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.pp-feeditem__del .pp-svg { width: 16px; height: 16px; }
+.pp-feeditem__head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; cursor: pointer; flex-wrap: wrap; min-width: 0; }
 .pp-feeditem__head strong { color: var(--text); font-size: 13.5px; }
 .pp-feeditem__head .pp-muted { font-size: 12px; }
 .pp-feeditem__activity { color: var(--text); font-weight: 600; font-size: 13.5px; }
@@ -226,6 +273,13 @@ export default {
 .pp-att--file:hover { border-color: var(--border-strong); color: var(--text); }
 .pp-att--file .pp-svg { width: 15px; height: 15px; flex: none; color: var(--danger); }
 .pp-att__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pp-pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding-top: 8px; margin-top: 2px; border-top: 1px solid var(--border); }
+.pp-pager__btn { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.pp-pager__btn:hover:not(:disabled) { background: var(--surface-3); color: var(--text); border-color: var(--border-strong); }
+.pp-pager__btn:disabled { opacity: .4; cursor: default; }
+.pp-pager__btn .pp-svg { width: 16px; height: 16px; }
+.pp-pager__info { font-size: 13px; font-weight: 600; color: var(--text-muted); min-width: 96px; text-align: center; }
 
 .pp-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 16px; color: var(--text-subtle); }
 .pp-empty .pp-svg { width: 34px; height: 34px; }
