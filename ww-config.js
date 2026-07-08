@@ -6,9 +6,39 @@ export default {
     { name: "filterChange", label: { en: "On filter click" }, event: { value: "all" } },
     { name: "delete", label: { en: "On delete click" }, event: { index: 0, id: "" } },
     { name: "pageChange", label: { en: "On page change" }, event: { page: 1 } },
+    { name: "noteSubmit", label: { en: "On note submit" }, event: { text: "", html: "", mentions: [], mentionIds: [], files: [], attachments: [] } },
+    { name: "addTask", label: { en: "On 'Add task?' click" }, event: { description: "", mentions: [], mentionIds: [] } },
   ],
   properties: {
     title: { label: { en: "Title" }, type: "Text", defaultValue: "Feed", bindable: true },
+
+    // ---- note composer (inline) ----
+    showComposer: { label: { en: "Show note composer" }, type: "OnOff", defaultValue: true, bindable: true },
+    composerPlaceholder: { label: { en: "Composer placeholder" }, type: "Text", defaultValue: "Write a note…  type @ to mention someone", bindable: true },
+    submitLabel: { label: { en: "Submit button label" }, type: "Text", defaultValue: "Post Note", bindable: true },
+    currentUserName: { label: { en: "Current user name (composer avatar)" }, type: "Text", defaultValue: "", bindable: true },
+    currentUserAvatar: { label: { en: "Current user avatar (url)" }, type: "Text", defaultValue: "", bindable: true },
+    allowAttachments: { label: { en: "Allow attachments on notes" }, type: "OnOff", defaultValue: true, bindable: true },
+    attachHint: { label: { en: "Attachment drop hint" }, type: "Text", defaultValue: "Drop your attachment here or click to browse", bindable: true },
+    // ---- @mention people ----
+    // Bind to your users collection, e.g. collections['<id>']?.['data'].
+    // Accepts an array or a WeWeb collection ({ data: [...] }).
+    users: {
+      label: { en: "Mentionable users (bind)" }, type: "Array", bindable: true,
+      defaultValue: [
+        { id: "u1", name: "Jay Helvey", headshot: "", subtitle: "Manager" },
+        { id: "u2", name: "Joshua Watson", headshot: "", subtitle: "Technician" },
+        { id: "u3", name: "Charlie Binder", headshot: "", subtitle: "Estimator" },
+        { id: "u4", name: "Alonzo Ontiveroz", headshot: "", subtitle: "Vendor" },
+      ],
+    },
+    userLabelField: { label: { en: "User field: name" }, type: "Text", defaultValue: "name", bindable: true, section: "settings" },
+    userValueField: { label: { en: "User field: id" }, type: "Text", defaultValue: "id", bindable: true, section: "settings" },
+    userAvatarField: { label: { en: "User field: avatar" }, type: "Text", defaultValue: "headshot", bindable: true, section: "settings" },
+    userSubtitleField: { label: { en: "User field: subtitle (optional)" }, type: "Text", defaultValue: "subtitle", bindable: true, section: "settings" },
+    // ---- task widget ----
+    showTaskWidget: { label: { en: "Show 'Add task?' widget on mention" }, type: "OnOff", defaultValue: true, bindable: true },
+    taskWidgetLabel: { label: { en: "Task widget label" }, type: "Text", defaultValue: "Add task?", bindable: true },
     paginate: { label: { en: "Paginate (built-in)" }, type: "OnOff", defaultValue: true, bindable: true },
     pageSize: { label: { en: "Items per page" }, type: "Number", options: { min: 1, max: 100, step: 1 }, defaultValue: 5, bindable: true },
     showDelete: { label: { en: "Show delete icon" }, type: "OnOff", defaultValue: true, bindable: true },
