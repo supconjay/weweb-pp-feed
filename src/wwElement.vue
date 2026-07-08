@@ -236,12 +236,15 @@ export default {
       if (u && !Array.isArray(u) && Array.isArray(u.data)) u = u.data;
       if (!Array.isArray(u)) return [];
       const lf = this.content.userLabelField || "name";
-      const vf = this.content.userValueField || "id";
+      const vf = this.content.userValueField || "user_auth_id";
       const af = this.content.userAvatarField || "headshot";
       const sf = this.content.userSubtitleField || "";
       return u.map((o) => {
         if (o && typeof o === "object") {
-          const id = o[vf] != null ? o[vf] : (o.id != null ? o.id : o.airtable_id);
+          // Prefer the configured field; fall back to auth id, then record ids.
+          const id = o[vf] != null && o[vf] !== "" ? o[vf]
+            : (o.user_auth_id != null && o.user_auth_id !== "" ? o.user_auth_id
+              : (o.id != null && o.id !== "" ? o.id : (o.airtable_record_id || o.airtable_id)));
           const name = String(o[lf] != null ? o[lf] : (o.name || o.label || o.title || ""));
           return { id, name, avatar: this.imgUrl(o[af]), subtitle: sf ? String(o[sf] || "") : "", raw: o };
         }

@@ -26,14 +26,14 @@ export default {
     users: {
       label: { en: "Mentionable users (bind)" }, type: "Array", bindable: true,
       defaultValue: [
-        { id: "u1", name: "Jay Helvey", headshot: "", subtitle: "Manager" },
-        { id: "u2", name: "Joshua Watson", headshot: "", subtitle: "Technician" },
-        { id: "u3", name: "Charlie Binder", headshot: "", subtitle: "Estimator" },
-        { id: "u4", name: "Alonzo Ontiveroz", headshot: "", subtitle: "Vendor" },
+        { user_auth_id: "auth-u1", name: "Jay Helvey", headshot: "", status: "Active" },
+        { user_auth_id: "auth-u2", name: "Joshua Watson", headshot: "", status: "Active" },
+        { user_auth_id: "auth-u3", name: "Charlie Binder", headshot: "", status: "Active" },
+        { user_auth_id: "auth-u4", name: "357 demo Alonzo Ontiveroz", headshot: "", status: "Active" },
       ],
     },
     userLabelField: { label: { en: "User field: name" }, type: "Text", defaultValue: "name", bindable: true, section: "settings" },
-    userValueField: { label: { en: "User field: id" }, type: "Text", defaultValue: "id", bindable: true, section: "settings" },
+    userValueField: { label: { en: "User field: id (mention value)" }, type: "Text", defaultValue: "user_auth_id", bindable: true, section: "settings" },
     userAvatarField: { label: { en: "User field: avatar" }, type: "Text", defaultValue: "headshot", bindable: true, section: "settings" },
     userSubtitleField: { label: { en: "User field: subtitle (optional)" }, type: "Text", defaultValue: "subtitle", bindable: true, section: "settings" },
     // ---- task widget ----
